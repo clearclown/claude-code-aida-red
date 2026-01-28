@@ -6,6 +6,8 @@
   <img src="docs/pics/aida-red-logo.svg" alt="AIDA-RED Logo" width="600">
 </p>
 
+English | [日本語](docs/readmeLang/README_ja.md) | [简体中文](docs/readmeLang/README_zh-CN.md) | [繁體中文](docs/readmeLang/README_zh-TW.md) | [Русский](docs/readmeLang/README_ru.md) | [فارسی](docs/readmeLang/README_fa.md) | [العربية](docs/readmeLang/README_ar.md)
+
 > **"If it breaks, it wasn't ready."**
 
 ---
