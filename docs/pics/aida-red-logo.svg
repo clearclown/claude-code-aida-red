@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200">
+  <defs>
+    <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B0000;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#DC143C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF4500;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="darkGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f0f1a;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="600" height="200" fill="url(#darkGradient)"/>
+
+  <!-- Skull Icon -->
+  <g transform="translate(50, 40)">
+    <!-- Skull base -->
+    <ellipse cx="50" cy="50" rx="40" ry="45" fill="url(#redGradient)" filter="url(#glow)"/>
+    <!-- Left eye -->
+    <ellipse cx="35" cy="45" rx="10" ry="12" fill="#0f0f1a"/>
+    <!-- Right eye -->
+    <ellipse cx="65" cy="45" rx="10" ry="12" fill="#0f0f1a"/>
+    <!-- Nose -->
+    <path d="M45 60 L50 70 L55 60 Z" fill="#0f0f1a"/>
+    <!-- Teeth -->
+    <rect x="30" y="80" width="8" height="15" fill="#0f0f1a"/>
+    <rect x="42" y="80" width="8" height="15" fill="#0f0f1a"/>
+    <rect x="54" y="80" width="8" height="15" fill="#0f0f1a"/>
+    <rect x="66" y="80" width="8" height="15" fill="#0f0f1a"/>
+    <!-- Crossbones -->
+    <line x1="10" y1="110" x2="90" y2="130" stroke="url(#redGradient)" stroke-width="8" stroke-linecap="round"/>
+    <line x1="90" y1="110" x2="10" y2="130" stroke="url(#redGradient)" stroke-width="8" stroke-linecap="round"/>
+  </g>
+
+  <!-- AIDA-RED Text -->
+  <text x="170" y="100" font-family="monospace" font-size="60" font-weight="bold" fill="url(#redGradient)" filter="url(#glow)">
+    AIDA-RED
+  </text>
+
+  <!-- Tagline -->
+  <text x="170" y="140" font-family="monospace" font-size="18" fill="#888">
+    Automated Intrusion &amp; Destruction Architecture
+  </text>
+
+  <!-- Villain icons -->
+  <g transform="translate(170, 155)" fill="#DC143C" opacity="0.7">
+    <!-- Joker icon (card) -->
+    <rect x="0" y="0" width="20" height="28" rx="2" fill="none" stroke="#DC143C" stroke-width="1.5"/>
+    <text x="10" y="20" font-size="16" text-anchor="middle">J</text>
+
+    <!-- Shadow icon (mask) -->
+    <ellipse cx="50" cy="14" rx="12" ry="10" fill="none" stroke="#DC143C" stroke-width="1.5"/>
+    <circle cx="45" cy="12" r="3" fill="#DC143C"/>
+    <circle cx="55" cy="12" r="3" fill="#DC143C"/>
+
+    <!-- Chaos icon (explosion) -->
+    <path d="M90 5 L95 15 L105 10 L100 20 L110 25 L100 25 L105 35 L95 28 L90 35 L85 28 L75 35 L80 25 L70 25 L80 20 L75 10 L85 15 Z"
+          fill="none" stroke="#DC143C" stroke-width="1.5"/>
+  </g>
+
+  <!-- Binary decoration -->
+  <text x="500" y="180" font-family="monospace" font-size="10" fill="#333">
+    01001000 01000001 01000011 01001011
+  </text>
+</svg>
