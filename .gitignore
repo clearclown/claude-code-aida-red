@@ -22,3 +22,6 @@
 
 # Ralph Loop state (local only)
 .claude/ralph-loop.local.md
+
+# AIDA-RED runtime state (scan results, local config)
+/.aida-red/
