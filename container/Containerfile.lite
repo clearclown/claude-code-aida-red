@@ -1,0 +1,37 @@
+# AIDA-RED Scanner - Lightweight Version
+# For faster builds, skips large packages like sqlmap/metasploit
+#
+# Build:  podman build -t aida-red-scanner-lite -f Containerfile.lite .
+
+FROM docker.io/kalilinux/kali-rolling:latest
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    nmap \
+    nikto \
+    ffuf \
+    curl \
+    jq \
+    sslscan \
+    stress-ng \
+    dnsutils \
+    procps \
+    unzip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install nuclei
+RUN NUCLEI_VERSION=$(curl -s https://api.github.com/repos/projectdiscovery/nuclei/releases/latest | jq -r '.tag_name' | tr -d 'v') \
+    && ARCH=$(dpkg --print-architecture) \
+    && if [ "$ARCH" = "amd64" ]; then NUCLEI_ARCH="amd64"; else NUCLEI_ARCH="arm64"; fi \
+    && curl -sSL "https://github.com/projectdiscovery/nuclei/releases/latest/download/nuclei_${NUCLEI_VERSION}_linux_${NUCLEI_ARCH}.zip" -o /tmp/nuclei.zip \
+    && unzip -o /tmp/nuclei.zip -d /usr/local/bin/ nuclei \
+    && chmod +x /usr/local/bin/nuclei \
+    && rm /tmp/nuclei.zip
+
+RUN mkdir -p /work/results /work/payloads
+WORKDIR /work
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["echo 'AIDA-RED Scanner Lite ready.'"]

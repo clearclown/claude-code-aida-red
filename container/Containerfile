@@ -1,0 +1,78 @@
+# AIDA-RED Security Scanner Container
+# Based on Kali Linux rolling with curated defensive security tools
+#
+# Build:  podman build -t aida-red-scanner -f Containerfile .
+# Run:    podman run --rm --network aida-red-net aida-red-scanner nuclei -u http://target:8080
+
+FROM docker.io/kalilinux/kali-rolling:latest
+
+LABEL maintainer="AIDA-RED" \
+      description="Defensive security testing toolkit for AIDA-RED" \
+      version="1.0.0"
+
+# Avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update and install security tools in a single layer
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # === Base ===
+    ca-certificates \
+    # === Network Scanning ===
+    nmap \
+    # === Web Application Scanning ===
+    nikto \
+    # === Fuzzing ===
+    ffuf \
+    wfuzz \
+    # === HTTP Tools ===
+    curl \
+    wget \
+    httpie \
+    # === SQL Injection Detection ===
+    sqlmap \
+    # === Directory/DNS Discovery ===
+    gobuster \
+    dirb \
+    # === SSL/TLS Analysis ===
+    sslscan \
+    sslyze \
+    # === Utilities ===
+    jq \
+    python3 \
+    python3-pip \
+    python3-venv \
+    git \
+    # === Stress Testing ===
+    stress-ng \
+    # === DNS Tools ===
+    dnsutils \
+    # === Process Tools ===
+    procps \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install nuclei (Go binary - not in kali repos by default)
+RUN NUCLEI_VERSION=$(curl -s https://api.github.com/repos/projectdiscovery/nuclei/releases/latest | jq -r '.tag_name' | tr -d 'v') \
+    && ARCH=$(dpkg --print-architecture) \
+    && if [ "$ARCH" = "amd64" ]; then NUCLEI_ARCH="amd64"; else NUCLEI_ARCH="arm64"; fi \
+    && curl -sSL "https://github.com/projectdiscovery/nuclei/releases/latest/download/nuclei_${NUCLEI_VERSION}_linux_${NUCLEI_ARCH}.zip" -o /tmp/nuclei.zip \
+    && unzip -o /tmp/nuclei.zip -d /usr/local/bin/ nuclei \
+    && chmod +x /usr/local/bin/nuclei \
+    && rm /tmp/nuclei.zip \
+    && nuclei -update-templates 2>/dev/null || true
+
+# Install OWASP ZAP CLI (headless)
+RUN python3 -m venv /opt/zap-venv \
+    && /opt/zap-venv/bin/pip install --no-cache-dir zaproxy python-owasp-zap-v2.4 \
+    && ln -sf /opt/zap-venv/bin/zap-cli /usr/local/bin/zap-cli || true
+
+# Create working directories
+RUN mkdir -p /work/results /work/payloads /work/templates
+
+# Copy payload dictionaries if present
+COPY --chmod=644 payloads/ /work/payloads/ 2>/dev/null || true
+
+# Default entrypoint - run any tool
+WORKDIR /work
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["echo 'AIDA-RED Scanner ready. Pass a command to execute.'"]
