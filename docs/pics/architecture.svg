@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
+  <defs>
+    <linearGradient id="conductorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="leaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="playerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="600" height="400" fill="#1a1a2e"/>
+
+  <!-- Human Operator -->
+  <g transform="translate(300, 30)">
+    <circle cx="0" cy="0" r="20" fill="#ffd93d" filter="url(#shadow)"/>
+    <text x="0" y="5" text-anchor="middle" fill="#1a1a2e" font-family="Arial" font-size="12" font-weight="bold">H</text>
+    <text x="0" y="50" text-anchor="middle" fill="#eee" font-family="Arial" font-size="11">Human Operator</text>
+  </g>
+
+  <!-- Arrow to Conductor -->
+  <line x1="300" y1="55" x2="300" y2="85" stroke="#888" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Conductor -->
+  <g transform="translate(300, 120)">
+    <rect x="-60" y="-25" width="120" height="50" rx="10" fill="url(#conductorGrad)" filter="url(#shadow)"/>
+    <text x="0" y="5" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">Conductor</text>
+  </g>
+
+  <!-- Arrows to Leaders -->
+  <line x1="260" y1="145" x2="180" y2="185" stroke="#888" stroke-width="2"/>
+  <line x1="340" y1="145" x2="420" y2="185" stroke="#888" stroke-width="2"/>
+
+  <!-- Leader-Spec -->
+  <g transform="translate(150, 220)">
+    <rect x="-70" y="-25" width="140" height="50" rx="10" fill="url(#leaderGrad)" filter="url(#shadow)"/>
+    <text x="0" y="5" text-anchor="middle" fill="white" font-family="Arial" font-size="13" font-weight="bold">Leader-Spec</text>
+  </g>
+
+  <!-- Leader-Impl -->
+  <g transform="translate(450, 220)">
+    <rect x="-70" y="-25" width="140" height="50" rx="10" fill="url(#leaderGrad)" filter="url(#shadow)"/>
+    <text x="0" y="5" text-anchor="middle" fill="white" font-family="Arial" font-size="13" font-weight="bold">Leader-Impl</text>
+  </g>
+
+  <!-- Arrows to Players -->
+  <line x1="100" y1="245" x2="70" y2="285" stroke="#888" stroke-width="2"/>
+  <line x1="200" y1="245" x2="230" y2="285" stroke="#888" stroke-width="2"/>
+  <line x1="400" y1="245" x2="370" y2="285" stroke="#888" stroke-width="2"/>
+  <line x1="500" y1="245" x2="530" y2="285" stroke="#888" stroke-width="2"/>
+
+  <!-- Players -->
+  <g transform="translate(70, 320)">
+    <rect x="-45" y="-25" width="90" height="50" rx="8" fill="url(#playerGrad)" filter="url(#shadow)"/>
+    <text x="0" y="5" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">Player</text>
+  </g>
+  <g transform="translate(230, 320)">
+    <rect x="-45" y="-25" width="90" height="50" rx="8" fill="url(#playerGrad)" filter="url(#shadow)"/>
+    <text x="0" y="5" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">Player</text>
+  </g>
+  <g transform="translate(370, 320)">
+    <rect x="-45" y="-25" width="90" height="50" rx="8" fill="url(#playerGrad)" filter="url(#shadow)"/>
+    <text x="0" y="5" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">Player</text>
+  </g>
+  <g transform="translate(530, 320)">
+    <rect x="-45" y="-25" width="90" height="50" rx="8" fill="url(#playerGrad)" filter="url(#shadow)"/>
+    <text x="0" y="5" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">Player</text>
+  </g>
+
+  <!-- Labels -->
+  <text x="150" y="380" text-anchor="middle" fill="#888" font-family="Arial" font-size="10">Specification</text>
+  <text x="450" y="380" text-anchor="middle" fill="#888" font-family="Arial" font-size="10">Implementation</text>
+</svg>

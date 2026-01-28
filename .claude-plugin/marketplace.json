@@ -1,0 +1,26 @@
+{
+  "name": "aida-local",
+  "owner": {
+    "name": "AIDA Project",
+    "url": "https://github.com/ablaze-AI/claude-code-aida"
+  },
+  "metadata": {
+    "description": "AIDA - Agent Integration & Development Architecture",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "aida",
+      "description": "Multi-agent orchestration framework for Claude Code with TDD and quality gates",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/aida",
+        "./skills/core",
+        "./skills/orchestrator",
+        "./skills/pipeline",
+        "./skills/requirements-gen"
+      ]
+    }
+  ]
+}

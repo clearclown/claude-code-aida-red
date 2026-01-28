@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "AIDA Session State Template - Copy to .aida/state/session.json",
+
+  "session_id": "{{UUID}}",
+  "started_at": "{{ISO8601}}",
+  "mode": "aida|start|pipeline|work",
+
+  "current_phase": "INITIALIZING|SPEC_PHASE|IMPL_PHASE|COMPLETED",
+  "phase": 1,
+  "phase_name": "initializing|extraction|structure|alignment|verification|implementation",
+
+  "user_request": "{{USER_REQUEST}}",
+  "project_name": "{{PROJECT_NAME}}",
+
+  "phase_history": [
+    {
+      "phase": "INITIALIZING",
+      "entered_at": "{{ISO8601}}",
+      "exited_at": "{{ISO8601}}"
+    }
+  ],
+
+  "leaders": {
+    "spec": "pending|running|completed|failed",
+    "impl": "pending|running|completed|failed"
+  },
+
+  "active_agents": [],
+
+  "completed_tasks": [],
+
+  "pending_tasks": [
+    "spec-requirements",
+    "spec-design",
+    "spec-tasks",
+    "impl-backend",
+    "impl-frontend",
+    "impl-docker",
+    "quality-gates"
+  ],
+
+  "quality_gates": {
+    "backend_build": null,
+    "backend_tests": null,
+    "frontend_build": null,
+    "frontend_tests": null,
+    "docker_build": null,
+    "docker_run": null,
+    "health_check": null,
+    "all_passed": false
+  },
+
+  "outputs": {
+    "specs": {
+      "requirements": null,
+      "design": null,
+      "tasks": null
+    },
+    "project": null,
+    "results": {
+      "spec_complete": null,
+      "impl_complete": null
+    }
+  },
+
+  "errors": [],
+
+  "completed_at": null
+}

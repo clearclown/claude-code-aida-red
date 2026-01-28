@@ -1,0 +1,29 @@
+{
+  "name": "aida",
+  "version": "2.0.0",
+  "description": "AIDA - Multi-agent project generation with auto-init, TDD enforcement, and quality gates",
+  "author": {
+    "name": "AIDA Team",
+    "email": "aida@example.com",
+    "url": "https://github.com/clearclown/claude-code-aida"
+  },
+  "homepage": "https://github.com/clearclown/claude-code-aida",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clearclown/claude-code-aida.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "aida",
+    "tdd",
+    "quality-gates",
+    "multi-agent",
+    "project-generation",
+    "automation",
+    "testing"
+  ],
+  "commands": "./commands",
+  "agents": "./agents",
+  "skills": "./skills",
+  "hooks": "./hooks/hooks.json"
+}

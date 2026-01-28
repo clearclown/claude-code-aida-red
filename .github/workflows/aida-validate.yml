@@ -1,0 +1,97 @@
+name: AIDA Validation
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup jq
+        run: sudo apt-get install -y jq
+
+      - name: Validate hooks.json
+        run: |
+          echo "Validating hooks.json..."
+          if jq empty hooks/hooks.json 2>/dev/null; then
+            echo "hooks.json is valid JSON"
+          else
+            echo "hooks.json is invalid"
+            exit 1
+          fi
+
+      - name: Validate plugin.json
+        run: |
+          echo "Validating plugin.json..."
+          if jq empty .claude-plugin/plugin.json 2>/dev/null; then
+            echo "plugin.json is valid JSON"
+          else
+            echo "plugin.json is invalid"
+            exit 1
+          fi
+
+      - name: Check script executability
+        run: |
+          echo "Checking script permissions..."
+          errors=0
+
+          for script in scripts/*.sh; do
+            if [[ -x "$script" ]]; then
+              echo "$script is executable"
+            else
+              echo "$script is NOT executable"
+              errors=$((errors + 1))
+            fi
+          done
+
+          if [[ $errors -gt 0 ]]; then
+            echo "Found $errors non-executable scripts"
+            exit 1
+          fi
+
+      - name: Validate bash syntax
+        run: |
+          echo "Validating bash syntax..."
+          errors=0
+
+          for script in scripts/*.sh; do
+            if [[ -f "$script" ]]; then
+              if bash -n "$script" 2>/dev/null; then
+                echo "$script syntax OK"
+              else
+                echo "$script has syntax errors"
+                errors=$((errors + 1))
+              fi
+            fi
+          done
+
+          if [[ $errors -gt 0 ]]; then
+            echo "Found $errors scripts with syntax errors"
+            exit 1
+          fi
+
+      - name: Run installation verification
+        run: ./scripts/verify-installation.sh || true
+
+      - name: Run test suite
+        run: |
+          echo "Running AIDA test suite..."
+          chmod +x tests/*.sh
+          ./tests/run-all-tests.sh
+
+      - name: Run prompt linter
+        run: |
+          echo "Running prompt linter..."
+          ./scripts/prompt-lint.sh lint || true
+
+      - name: Summary
+        run: |
+          echo ""
+          echo "=== AIDA Validation Complete ==="

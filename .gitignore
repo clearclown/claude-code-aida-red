@@ -1,0 +1,24 @@
+# AIDA runtime state (session, artifacts, results)
+/.aida/
+.serena/
+# Legacy output directory
+/output/
+
+# Root aida directory (if exists)
+/aida/
+
+# Playwright MCP cache
+.playwright-mcp/
+
+# Test outputs (not test scripts)
+/tests/*.log
+/tests/*.tmp
+/tests/output/
+
+# Temporary/generated files
+*.tmp
+*.bak
+*.log
+
+# Ralph Loop state (local only)
+.claude/ralph-loop.local.md
