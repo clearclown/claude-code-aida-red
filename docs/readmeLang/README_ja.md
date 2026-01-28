@@ -1,230 +1,268 @@
-# AIDA プラグイン for Claude Code
+# AIDA-RED: 防御的セキュリティテストフレームワーク
 
-**AIDA** (Agent Integration & Development Architecture) - Claude Code向けマルチエージェントオーケストレーションフレームワーク
+**AIDA-RED** (Automated Intrusion & Destruction Architecture) - AIDAのレッドチーム版
+
+<p align="center">
+  <img src="../pics/aida-red-logo.svg" alt="AIDA-RED Logo" width="600">
+</p>
 
 [English](../../README.md) | 日本語 | [简体中文](README_zh-CN.md) | [繁體中文](README_zh-TW.md) | [Русский](README_ru.md) | [فارسی](README_fa.md) | [العربية](README_ar.md)
 
+> **「壊れるなら、まだ準備ができていなかった。」**
+
+---
+
 ## 概要
 
-AIDAはソフトウェア開発プロジェクト向けのマルチエージェントオーケストレーションを実現します：
+AIDA-REDは[claude-code-aida](https://github.com/clearclown/claude-code-aida)と連携する**防御的セキュリティテストフレームワーク**です。AIDAが**構築**に専念する一方、AIDA-REDは攻撃者より先に脆弱性を発見するため**破壊**に専念します。
 
-- **新規プロジェクト生成**: 自然言語記述から完全なプロジェクトを生成
-- **既存プロジェクト拡張**: 新機能で既存プロジェクトを拡張
-- **プロジェクトメンテナンス**: 依存関係更新、セキュリティ監査、品質改善
-- **外部プロジェクトインポート**: GitHub/GitLabリポジトリのインポートと分析
+**主要な革新**: AIDA-REDは**Podman/Dockerコンテナ**で**Kali Linux**セキュリティツールを実行し、Claude Codeがオーケストレーションします。Claudeは攻撃コードを書かず、実績のあるオープンソースセキュリティツールを呼び出して結果を分析します。
 
-<p align="center">
-  <img src="../pics/architecture.svg" alt="AIDAアーキテクチャ" width="600">
-</p>
+### 哲学
 
-## クイックスタート
+1. **ゼロトラスト**: すべての入力を攻撃ベクトルと仮定
+2. **ゼロモック**: 分離された関数ではなく、実行中のコンテナを攻撃
+3. **実績あるツール**: カスタムエクスプロイトではなく、実証済みスキャナー（nuclei, nikto, nmap）を使用
+4. **実用的レポート**: すべての発見に再現手順と修正アドバイスを含む
 
-### インストール
-
-**ワンラインインストール（推奨）**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/clearclown/claude-code-aida/main/scripts/install.sh | bash
-```
-
-**手動インストール**
-
-```bash
-# リポジトリをクローン
-git clone https://github.com/clearclown/claude-code-aida.git
-cd claude-code-aida
-
-# インストールスクリプトを実行
-./scripts/install.sh
-```
-
-**インストール確認**
-
-```bash
-./scripts/test-aida.sh --quick
-```
-
-### 基本的な使い方
-
-```bash
-# AIDAワークスペースを初期化
-/aida:init
-
-# 新規プロジェクトを生成
-/aida:pipeline "Twitterクローンアプリケーションを作成"
-
-# 既存プロジェクトを拡張
-/aida:enhance /path/to/project "ユーザー認証を追加"
-
-# ステータスを確認
-/aida:status
-```
-
-## コマンド
-
-### プロジェクト生成（新規プロジェクト）
-
-| コマンド | 説明 |
-|---------|------|
-| `/aida:init` | AIDAディレクトリ構造を初期化 |
-| `/aida:start <説明>` | 新規マルチエージェントパイプラインを開始 |
-| `/aida:status` | 現在のセッションステータスを表示 |
-| `/aida:work` | 現在のフェーズタスクを実行 |
-| `/aida:pipeline <説明>` | 完全自動パイプラインを実行 |
-
-### 既存プロジェクトサポート
-
-| コマンド | 説明 |
-|---------|------|
-| `/aida:analyze <パス>` | プロジェクト構造、技術スタック、品質を分析 |
-| `/aida:import <パス\|URL>` | 外部プロジェクトをAIDA管理にインポート |
-| `/aida:enhance <パス> [仕様]` | ドキュメントまたは自然言語でプロジェクトを拡張 |
-| `/aida:maintain <パス> [オプション]` | メンテナンスタスク（依存関係、セキュリティ、品質） |
-
-### メンテナンスオプション
-
-```bash
-# 依存関係を更新
-/aida:maintain /path/to/project --update-deps
-
-# セキュリティ監査
-/aida:maintain /path/to/project --security
-
-# 品質改善
-/aida:maintain /path/to/project --improve
-
-# 失敗したテストを修正
-/aida:maintain /path/to/project --fix-tests
-
-# GitHub Issueに対応
-/aida:maintain /path/to/project --issue https://github.com/org/repo/issues/123
-```
+---
 
 ## アーキテクチャ
 
-### エージェントの役割
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Claude Code                               │
+│                    (オーケストレーター & アナリスト)              │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
+│  │ /aida:red-  │  │ /aida:red-  │  │ /aida:red-  │              │
+│  │    init     │  │   assault   │  │   report    │              │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘              │
+└─────────┼────────────────┼────────────────┼─────────────────────┘
+          │                │                │
+          ▼                ▼                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Podman / Docker                               │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │              aida-red-scanner (Kali Linux)                 │ │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐          │ │
+│  │  │ nuclei  │ │  nikto  │ │  nmap   │ │  ffuf   │  ...     │ │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘          │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                             │                                    │
+│                    aida-red-net (Podmanネットワーク)             │
+│                             │                                    │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │                 ターゲットアプリケーション                  │ │
+│  │            (AIDAで生成したプロジェクト)                     │ │
+│  └────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-| エージェント | 役割 |
-|-------------|------|
-| **Conductor** | パイプライン全体をオーケストレーション、Leaderを指揮 |
-| **Leader-Spec** | 仕様フェーズを担当（要件、設計） |
-| **Leader-Impl** | 実装フェーズを担当（TDDベース開発） |
-| **Leader-Enhance** | 既存プロジェクトの拡張仕様を担当 |
-| **Player** | 専門ワーカー（Backend、Frontend、Docker） |
+---
 
-## 5フェーズワークフロー
+## セキュリティツール
 
-<p align="center">
-  <img src="../pics/workflow.svg" alt="ワークフロー" width="700">
-</p>
+AIDA-REDには業界標準のセキュリティツールがプリインストールされています：
 
-| フェーズ | 名前 | 説明 |
-|---------|------|------|
-| 1 | 抽出とアーキテクチャ | 要件抽出、アーキテクチャ設計 |
-| 2 | 構造とスキーマ | ディレクトリ構造、データスキーマ定義 |
-| 3 | アラインメント | 要件の一貫性チェック |
-| 4 | 検証 | 計画検証、修正箇所の特定 |
-| 5 | 実装 | 品質ゲート付きTDDベース開発 |
+| ツール | 目的 | 用途 |
+|--------|------|------|
+| **[nuclei](https://github.com/projectdiscovery/nuclei)** | テンプレートベース脆弱性スキャナー | CVE検出、設定ミス |
+| **[nikto](https://github.com/sullo/nikto)** | Webサーバースキャナー | サーバー設定ミス、古いソフトウェア |
+| **[nmap](https://nmap.org/)** | ネットワークスキャナー | ポート検出、サービス特定 |
+| **[ffuf](https://github.com/ffuf/ffuf)** | Webファザー | ディレクトリ探索、パラメータファジング |
+| **[sslscan](https://github.com/rbsec/sslscan)** | SSL/TLSアナライザー | 証明書問題、弱い暗号 |
+| **[sqlmap](https://sqlmap.org/)** | SQLインジェクション検出 | データベース脆弱性（フル版） |
+| **[stress-ng](https://github.com/ColinIanKing/stress-ng)** | 負荷テスト | リソース枯渇テスト |
 
-## 対応言語
+---
 
-AIDAは複数の言語を自動検出してサポートします：
+## インストール
 
-| 言語 | 検出方法 | テストフレームワーク |
-|------|----------|---------------------|
-| Go | `go.mod` | `go test` |
-| TypeScript/JavaScript | `package.json` | Jest, Vitest |
-| Python | `pyproject.toml`, `requirements.txt` | pytest |
-| Rust | `Cargo.toml` | `cargo test` |
-| Java | `pom.xml`, `build.gradle` | JUnit, Maven/Gradle |
-| Ruby | `Gemfile` | RSpec |
-| C# | `*.csproj` | dotnet test |
-| PHP | `composer.json` | PHPUnit |
+### 前提条件
 
-## 品質ゲート
-
-### 新規プロジェクトゲート（10ゲート）
-
-| ゲート | 名前 | 検証内容 |
-|--------|------|----------|
-| 1 | Backendビルド | `go build ./...` |
-| 2 | Backendテスト | `go test ./...` |
-| 3 | Frontendビルド | `npm run build` |
-| 4 | Frontendテスト | `npm test -- --run` |
-| 5 | Dockerビルド | `docker compose build` |
-| 6 | Docker実行 | `docker compose up -d` |
-| 7 | ヘルスチェック | `curl localhost:8080/health` |
-| 8 | APIカバレッジ | 3+ハンドラファイル、10+関数 |
-| 9 | Frontendカバレッジ | 3+ページ、ルーティング、APIクライアント |
-| 10 | 統合 | APIクライアント、CORS、Dockerリンク |
-
-## TDDプロトコル
-
-<p align="center">
-  <img src="../pics/tdd-cycle.svg" alt="TDDサイクル" width="300">
-</p>
-
-すべての実装は厳格なTDDに従います：
-
-1. **RED**: 最初に失敗するテストを書く
-2. **GREEN**: テストをパスする最小限のコード
-3. **REFACTOR**: テストがパスしたままクリーンアップ
-
-テストなしのコードは不可。実行しないテストも不可。
-
-## スクリプト
-
-| スクリプト | 説明 |
-|-----------|------|
-| `scripts/install.sh` | ワンクリックインストール |
-| `scripts/test-aida.sh` | AIDAセルフテスト |
-| `scripts/quality-gates.sh` | 新規プロジェクト品質ゲート |
-| `scripts/enhance-quality-gates.sh` | 拡張品質ゲート |
-| `scripts/analyze-project.sh` | プロジェクト分析 |
-| `scripts/checkpoint.sh` | セッション状態の保存/復元 |
-
-## コンテナランタイム
-
-AIDAはDockerとPodmanの両方をサポートします：
+- **Podman**（推奨）または **Docker**
+- **Claude Code**とAIDAプラグイン
 
 ```bash
-# podmanまたはdockerを自動検出
+# Podmanインストール（Ubuntu/Debian）
+sudo apt install podman
 
-# Podmanを強制
-export DOCKER_HOST="unix:///run/user/$(id -u)/podman/podman.sock"
-./scripts/quality-gates.sh myproject
+# またはDocker
+sudo apt install docker.io
 ```
+
+### AIDA-REDインストール
+
+AIDA-REDはAIDAプラグインに含まれています。個別インストール不要です。
+
+```bash
+# インストール確認
+/aida:red-status
+```
+
+### スキャナーイメージビルド
+
+```bash
+# Kaliスキャナーコンテナを初期化・ビルド
+/aida:red-init
+
+# または軽量版（ビルド高速、ツール少なめ）
+/aida:red-init --lite
+```
+
+**イメージサイズ:**
+- フル版: ~2GB（sqlmap、ZAP CLI含む）
+- 軽量版: ~624MB（nuclei、nikto、nmap、ffuf、sslscan）
+
+---
+
+## 使い方
+
+### クイックスタート
+
+```bash
+# 1. AIDAでアプリケーションをビルド
+/aida "ユーザー認証付きREST APIを作成"
+
+# 2. AIDA-REDスキャナーを初期化
+/aida:red-init --lite
+
+# 3. 実行中のアプリに対してセキュリティスキャン実行
+/aida:red-assault --target http://localhost:8080
+
+# 4. レポートを確認
+/aida:red-report
+```
+
+### コマンド
+
+| コマンド | 説明 |
+|----------|------|
+| `/aida:red-init` | Kaliスキャナーコンテナをビルド、ネットワーク作成 |
+| `/aida:red-assault` | ターゲットに対してセキュリティスキャン実行 |
+| `/aida:red-status` | スキャナー状態と最近の発見を表示 |
+| `/aida:red-report` | 詳細な脆弱性レポートを生成 |
+| `/aida:red-cleanup` | コンテナとネットワークを削除 |
+
+### assaultオプション
+
+```bash
+# 基本スキャン（標準強度）
+/aida:red-assault --target http://localhost:8080
+
+# 最大強度（全ツール）
+/aida:red-assault --target http://localhost:8080 --intensity maximum
+
+# 特定ツールのみ
+/aida:red-assault --target http://localhost:8080 --tools nuclei,nikto
+
+# AIDAプロジェクトをスキャン（実行中サービス自動検出）
+/aida:red-assault --target ../my-aida-project
+```
+
+### 強度レベル
+
+| レベル | ツール | 所要時間 |
+|--------|--------|----------|
+| `minimum` | nuclei、health-check | ~1分 |
+| `standard` | nuclei、nikto、nmap、sslscan | ~5分 |
+| `maximum` | ffuf、sqlmap含む全ツール | ~15分 |
+
+---
+
+## 出力例
+
+```
+AIDA-RED Assault Complete
+
+ターゲット: http://localhost:8080
+所要時間: 2分34秒
+ツール: nuclei, nikto, nmap, sslscan
+
+発見:
+  Critical:  0
+  High:      2
+  Medium:    5
+  Low:       3
+  Info:      10
+
+主要な問題:
+  [HIGH] 古いTLS設定 - TLS 1.0が有効
+  [HIGH] セキュリティヘッダー欠如 - X-Frame-Optionsが未設定
+  [MED]  情報漏洩 - ヘッダーにサーバーバージョン
+  [MED]  オープンポート - ポート5432（PostgreSQL）が公開
+  [MED]  ディレクトリリスティング - /assets/のリスティングが有効
+
+詳細レポート: .aida-red/reports/assault-20260128.json
+```
+
+---
+
+## 3人のヴィラン（エージェントペルソナ）
+
+AIDA-REDは異なる攻撃ベクトル専門の3つの「ヴィラン」エージェントを使用：
+
+### The Joker（ロジックファザー）
+「技術的には有効だが論理的に破壊的」な入力を生成
+- 境界値、巨大ペイロード、Unicode注入
+- レースコンディション、整数オーバーフロー
+- ツール: `ffuf`、`nuclei`（ファジングテンプレート）
+
+### The Shadow（セキュリティブレイカー）
+認可バイパスとデータ漏洩を発見
+- IDOR、権限昇格、JWT操作
+- SQLインジェクション、認証バイパス
+- ツール: `nuclei`、`nikto`、`sqlmap`
+
+### The Chaos（インフラスマッシャー）
+コードではなく環境を破壊
+- コンテナクラッシュ、ネットワーク分断
+- リソース枯渇、モンキーテスト
+- ツール: `stress-ng`、`nmap`
+
+---
+
+## AIDA連携
+
+AIDA-REDはAIDAのワークフローと自動連携：
+
+1. **自動トリガー**: AIDA完了時（品質ゲートパス）、セキュリティスキャンを提案
+
+2. **証拠注入**: 発見を`.aida/tdd-evidence/external-bugs/`に書き込み、AIDAの品質ゲートを**失敗**させる
+
+3. **継続ループ**: 脆弱性修正 → AIDA再ビルド → AIDA-RED再スキャン → クリーンになるまで繰り返し
+
+```
+AIDAビルド完了
+        ↓
+AIDA-REDスキャン
+        ↓
+脆弱性発見? ─── いいえ ───→ 完了！
+        │
+       はい
+        ↓
+AIDA証拠に注入
+        ↓
+AIDA品質ゲート失敗
+        ↓
+開発者が修正
+        ↓
+AIDA再ビルド → ループ
+```
+
+---
+
+## セキュリティ考慮事項
+
+AIDA-REDは自分のアプリケーションの**防御的セキュリティテスト**用に設計：
+
+- 所有または許可されたアプリケーションのみをスキャン
+- 許可なく本番システムに使用しない
+- 結果に誤検知が含まれる可能性あり - 発見は手動で検証
+- 一部ツール（sqlmap）はデータを変更する可能性あり - 注意して使用
+
+---
 
 ## ライセンス
 
-MIT
-
-## クレジット・謝辞
-
-### 核心技術
-
-| プロジェクト | 作者 | 役割 |
-|-------------|------|------|
-| [zoltraak](https://github.com/dai-motoki/zoltraak) | [@dai-motoki](https://github.com/dai-motoki) | 要件生成 |
-| [cc-sdd](https://github.com/gotalab/cc-sdd) | [@gotalab](https://github.com/gotalab) | 仕様駆動開発 |
-| [claude-code-harness](https://github.com/Chachamaru127/claude-code-harness) | [@Chachamaru127](https://github.com/Chachamaru127) | TDD フレームワーク |
-| orchestrobot (aida-cli) | [@kent8192](https://github.com/kent8192) | マルチエージェント |
-
-### インフラストラクチャ
-
-| プロジェクト | ライセンス |
-|-------------|-----------|
-| [Claude Code](https://github.com/anthropics/claude-code) | Anthropic |
-| [Redis](https://redis.io/) | BSD-3-Clause |
-| [tmux](https://github.com/tmux/tmux) | ISC |
-| [Podman](https://podman.io/) | Apache 2.0 |
-
-### スペシャルサンクス
-
-- [Anthropic](https://www.anthropic.com/) - Claudeの開発元
-- このプロジェクトの改善に貢献してくださったすべての貢献者とテスター
-
-## リンク
-
-- [GitHubリポジトリ](https://github.com/clearclown/claude-code-aida)
-- [Issues](https://github.com/clearclown/claude-code-aida/issues)
+MITライセンス - 責任を持って使用してください。これらのツールの使用方法はあなたの責任です。

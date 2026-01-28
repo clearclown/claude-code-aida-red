@@ -1,234 +1,304 @@
 <div dir="rtl">
 
-# إضافة AIDA لـ Claude Code
+# AIDA-RED: إطار عمل اختبار الأمان الدفاعي
 
-**AIDA** (Agent Integration & Development Architecture) - إطار تنسيق الوكلاء المتعددين لـ Claude Code
+**AIDA-RED** (هندسة الاختراق والتدمير الآلي) - نسخة الفريق الأحمر من AIDA
+
+<p align="center">
+  <img src="../pics/aida-red-logo.svg" alt="AIDA-RED Logo" width="600">
+</p>
 
 [English](../../README.md) | [日本語](README_ja.md) | [简体中文](README_zh-CN.md) | [繁體中文](README_zh-TW.md) | [Русский](README_ru.md) | [فارسی](README_fa.md) | العربية
 
+> **"إذا انكسر، فلم يكن جاهزاً."**
+
+---
+
 ## نظرة عامة
 
-يوفر AIDA تنسيق الوكلاء المتعددين لمشاريع تطوير البرمجيات:
+AIDA-RED هو **إطار عمل اختبار الأمان الدفاعي** الذي يتكامل مع [claude-code-aida](https://github.com/clearclown/claude-code-aida). بينما يركز AIDA على **بناء** التطبيقات، يركز AIDA-RED على **كسرها** للعثور على الثغرات قبل المهاجمين.
 
-- **توليد مشاريع جديدة**: إنشاء مشاريع كاملة من وصف اللغة الطبيعية
-- **تحسين المشاريع الموجودة**: توسيع المشاريع الموجودة بميزات جديدة
-- **صيانة المشاريع**: تحديث التبعيات، تدقيق الأمان، تحسين الجودة
-- **استيراد المشاريع الخارجية**: استيراد وتحليل مستودعات GitHub/GitLab
+**الابتكار الرئيسي**: يستخدم AIDA-RED **حاويات Podman/Docker** التي تشغل أدوات أمان **Kali Linux**، منسقة بواسطة Claude Code. كلود لا يكتب كود الهجوم - بل يستدعي أدوات أمان مفتوحة المصدر مثبتة ويحلل مخرجاتها.
 
-<p align="center">
-  <img src="../pics/architecture.svg" alt="بنية AIDA" width="600">
-</p>
+### الفلسفة
 
-## البدء السريع
+1. **انعدام الثقة**: افترض أن كل مدخل هو متجه هجوم
+2. **بدون محاكاة**: هاجم الحاوية العاملة، وليس الوظائف المعزولة
+3. **أدوات حقيقية**: استخدم ماسحات أمان مثبتة (nuclei، nikto، nmap)، وليس استغلالات مخصصة
+4. **تقارير قابلة للتنفيذ**: كل اكتشاف يتضمن خطوات إعادة الإنتاج ونصائح الإصلاح
 
-### التثبيت
+---
 
-**التثبيت بسطر واحد (موصى به)**
+## الهندسة المعمارية
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/clearclown/claude-code-aida/main/scripts/install.sh | bash
+<div dir="ltr">
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Claude Code                               │
+│                    (المنسق والمحلل)                              │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
+│  │ /aida:red-  │  │ /aida:red-  │  │ /aida:red-  │              │
+│  │    init     │  │   assault   │  │   report    │              │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘              │
+└─────────┼────────────────┼────────────────┼─────────────────────┘
+          │                │                │
+          ▼                ▼                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Podman / Docker                               │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │              aida-red-scanner (Kali Linux)                 │ │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐          │ │
+│  │  │ nuclei  │ │  nikto  │ │  nmap   │ │  ffuf   │  ...     │ │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘          │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                             │                                    │
+│                    aida-red-net (شبكة Podman)                    │
+│                             │                                    │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │                 التطبيق الهدف                               │ │
+│  │            (مشروعك المولد بواسطة AIDA)                      │ │
+│  └────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**التثبيت اليدوي**
+</div>
+
+---
+
+## أدوات الأمان
+
+يأتي AIDA-RED مع أدوات أمان قياسية مثبتة مسبقاً:
+
+| الأداة | الغرض | حالة الاستخدام |
+|--------|-------|----------------|
+| **[nuclei](https://github.com/projectdiscovery/nuclei)** | ماسح ثغرات قائم على القوالب | كشف CVE، الأخطاء في التكوين |
+| **[nikto](https://github.com/sullo/nikto)** | ماسح خادم الويب | أخطاء تكوين الخادم، البرامج القديمة |
+| **[nmap](https://nmap.org/)** | ماسح الشبكة | اكتشاف المنافذ، كشف الخدمات |
+| **[ffuf](https://github.com/ffuf/ffuf)** | أداة فحص الويب | استكشاف المجلدات، فحص المعلمات |
+| **[sslscan](https://github.com/rbsec/sslscan)** | محلل SSL/TLS | مشاكل الشهادات، التشفير الضعيف |
+| **[sqlmap](https://sqlmap.org/)** | كاشف حقن SQL | ثغرات قواعد البيانات (النسخة الكاملة) |
+| **[stress-ng](https://github.com/ColinIanKing/stress-ng)** | اختبار الضغط | اختبار استنفاد الموارد |
+
+---
+
+## التثبيت
+
+### المتطلبات الأساسية
+
+- **Podman** (موصى به) أو **Docker**
+- **Claude Code** مع إضافة AIDA مثبتة
+
+<div dir="ltr">
 
 ```bash
-# استنساخ المستودع
-git clone https://github.com/clearclown/claude-code-aida.git
-cd claude-code-aida
+# تثبيت Podman (Ubuntu/Debian)
+sudo apt install podman
 
-# تشغيل سكريبت التثبيت
-./scripts/install.sh
+# أو Docker
+sudo apt install docker.io
 ```
 
-**التحقق من التثبيت**
+</div>
+
+### تثبيت AIDA-RED
+
+AIDA-RED مضمن في إضافة AIDA. لا حاجة لتثبيت منفصل.
+
+<div dir="ltr">
 
 ```bash
-./scripts/test-aida.sh --quick
+# التحقق من التثبيت
+/aida:red-status
 ```
 
-### الاستخدام الأساسي
+</div>
+
+### بناء صورة الماسح
+
+<div dir="ltr">
 
 ```bash
-# تهيئة مساحة عمل AIDA
-/aida:init
+# تهيئة وبناء حاوية ماسح Kali
+/aida:red-init
 
-# توليد مشروع جديد
-/aida:pipeline "إنشاء نسخة من تويتر"
-
-# تحسين مشروع موجود
-/aida:enhance /path/to/project "إضافة مصادقة المستخدم"
-
-# التحقق من الحالة
-/aida:status
+# أو استخدام النسخة الخفيفة (بناء أسرع، أدوات أقل)
+/aida:red-init --lite
 ```
 
-## الأوامر
+</div>
 
-### توليد المشاريع (مشاريع جديدة)
+**أحجام الصور:**
+- كاملة: ~2GB (تشمل sqlmap، ZAP CLI)
+- خفيفة: ~624MB (nuclei، nikto، nmap، ffuf، sslscan)
+
+---
+
+## الاستخدام
+
+### البداية السريعة
+
+<div dir="ltr">
+
+```bash
+# 1. بناء تطبيقك باستخدام AIDA
+/aida "إنشاء REST API مع مصادقة المستخدم"
+
+# 2. تهيئة ماسح AIDA-RED
+/aida:red-init --lite
+
+# 3. تشغيل فحص أمني ضد تطبيقك العامل
+/aida:red-assault --target http://localhost:8080
+
+# 4. عرض التقرير
+/aida:red-report
+```
+
+</div>
+
+### الأوامر
 
 | الأمر | الوصف |
 |-------|-------|
-| `/aida:init` | تهيئة هيكل دليل AIDA |
-| `/aida:start <وصف>` | بدء خط أنابيب الوكلاء المتعددين |
-| `/aida:status` | عرض حالة الجلسة الحالية |
-| `/aida:work` | تنفيذ مهام المرحلة الحالية |
-| `/aida:pipeline <وصف>` | تشغيل خط أنابيب آلي كامل |
+| `/aida:red-init` | بناء حاوية ماسح Kali، إنشاء الشبكة |
+| `/aida:red-assault` | تشغيل فحوصات الأمان ضد الهدف |
+| `/aida:red-status` | عرض حالة الماسح والاكتشافات الأخيرة |
+| `/aida:red-report` | إنشاء تقرير ثغرات مفصل |
+| `/aida:red-cleanup` | إزالة الحاويات والشبكة |
 
-### دعم المشاريع الموجودة
+### خيارات الهجوم
 
-| الأمر | الوصف |
-|-------|-------|
-| `/aida:analyze <مسار>` | تحليل هيكل المشروع، المكدس التقني، الجودة |
-| `/aida:import <مسار\|URL>` | استيراد مشروع خارجي إلى إدارة AIDA |
-| `/aida:enhance <مسار> [مواصفات]` | تحسين المشروع بوثيقة أو لغة طبيعية |
-| `/aida:maintain <مسار> [خيارات]` | مهام الصيانة (التبعيات، الأمان، الجودة) |
-
-### خيارات الصيانة
+<div dir="ltr">
 
 ```bash
-# تحديث التبعيات
-/aida:maintain /path/to/project --update-deps
+# فحص أساسي (شدة قياسية)
+/aida:red-assault --target http://localhost:8080
 
-# تدقيق الأمان
-/aida:maintain /path/to/project --security
+# أقصى شدة (جميع الأدوات)
+/aida:red-assault --target http://localhost:8080 --intensity maximum
 
-# تحسين الجودة
-/aida:maintain /path/to/project --improve
+# أدوات محددة فقط
+/aida:red-assault --target http://localhost:8080 --tools nuclei,nikto
 
-# إصلاح الاختبارات الفاشلة
-/aida:maintain /path/to/project --fix-tests
-
-# معالجة GitHub Issue
-/aida:maintain /path/to/project --issue https://github.com/org/repo/issues/123
+# فحص مشروع AIDA (كشف تلقائي للخدمات العاملة)
+/aida:red-assault --target ../my-aida-project
 ```
 
-## البنية
+</div>
 
-### أدوار الوكلاء
+### مستويات الشدة
 
-| الوكيل | الدور |
-|--------|-------|
-| **Conductor** | تنسيق خط الأنابيب بالكامل، توجيه القادة |
-| **Leader-Spec** | معالجة مراحل المواصفات (المتطلبات، التصميم) |
-| **Leader-Impl** | معالجة مرحلة التنفيذ (التطوير المبني على TDD) |
-| **Leader-Enhance** | معالجة مواصفات التحسين للمشاريع الموجودة |
-| **Player** | عمال متخصصون (Backend، Frontend، Docker) |
+| المستوى | الأدوات | المدة |
+|---------|---------|-------|
+| `minimum` | nuclei، health-check | ~دقيقة واحدة |
+| `standard` | nuclei، nikto، nmap، sslscan | ~5 دقائق |
+| `maximum` | جميع الأدوات بما فيها ffuf، sqlmap | ~15 دقيقة |
 
-## سير العمل من ٥ مراحل
+---
 
-<p align="center">
-  <img src="../pics/workflow.svg" alt="سير العمل" width="700">
-</p>
+## مثال على المخرجات
 
-| المرحلة | الاسم | الوصف |
-|---------|-------|-------|
-| ١ | الاستخراج والبنية | استخراج المتطلبات، تصميم البنية |
-| ٢ | الهيكل والمخطط | هيكل الدليل، تعريف مخطط البيانات |
-| ٣ | المحاذاة | التحقق من اتساق المتطلبات |
-| ٤ | التحقق | التحقق من الخطة، تحديد المراجعات |
-| ٥ | التنفيذ | التطوير المبني على TDD مع بوابات الجودة |
+<div dir="ltr">
 
-## دعم اللغات
-
-يكتشف AIDA تلقائياً ويدعم لغات متعددة:
-
-| اللغة | الكشف | إطار الاختبار |
-|-------|-------|---------------|
-| Go | `go.mod` | `go test` |
-| TypeScript/JavaScript | `package.json` | Jest, Vitest |
-| Python | `pyproject.toml`, `requirements.txt` | pytest |
-| Rust | `Cargo.toml` | `cargo test` |
-| Java | `pom.xml`, `build.gradle` | JUnit, Maven/Gradle |
-| Ruby | `Gemfile` | RSpec |
-| C# | `*.csproj` | dotnet test |
-| PHP | `composer.json` | PHPUnit |
-
-## بوابات الجودة
-
-### بوابات المشاريع الجديدة (١٠ بوابات)
-
-| البوابة | الاسم | التحقق |
-|---------|-------|--------|
-| ١ | بناء Backend | `go build ./...` |
-| ٢ | اختبارات Backend | `go test ./...` |
-| ٣ | بناء Frontend | `npm run build` |
-| ٤ | اختبارات Frontend | `npm test -- --run` |
-| ٥ | بناء Docker | `docker compose build` |
-| ٦ | تشغيل Docker | `docker compose up -d` |
-| ٧ | فحص الصحة | `curl localhost:8080/health` |
-| ٨ | تغطية API | ٣+ ملفات معالج، ١٠+ دوال |
-| ٩ | تغطية Frontend | ٣+ صفحات، التوجيه، عميل API |
-| ١٠ | التكامل | عميل API، CORS، روابط Docker |
-
-## بروتوكول TDD
-
-<p align="center">
-  <img src="../pics/tdd-cycle.svg" alt="دورة TDD" width="300">
-</p>
-
-يتبع كل التنفيذ TDD صارم:
-
-١. **RED**: اكتب اختباراً فاشلاً أولاً
-٢. **GREEN**: أقل كود لاجتياز الاختبار
-٣. **REFACTOR**: التنظيف أثناء اجتياز الاختبارات
-
-لا كود بدون اختبارات. لا اختبارات بدون تشغيلها.
-
-## السكريبتات
-
-| السكريبت | الوصف |
-|----------|-------|
-| `scripts/install.sh` | التثبيت بنقرة واحدة |
-| `scripts/test-aida.sh` | الاختبار الذاتي لـ AIDA |
-| `scripts/quality-gates.sh` | بوابات جودة المشاريع الجديدة |
-| `scripts/enhance-quality-gates.sh` | بوابات جودة التحسين |
-| `scripts/analyze-project.sh` | تحليل المشروع |
-| `scripts/checkpoint.sh` | حفظ/استعادة حالة الجلسة |
-
-## بيئة تشغيل الحاويات
-
-يدعم AIDA كلاً من Docker و Podman:
-
-```bash
-# الكشف التلقائي عن podman أو docker
-
-# فرض Podman
-export DOCKER_HOST="unix:///run/user/$(id -u)/podman/podman.sock"
-./scripts/quality-gates.sh myproject
 ```
+AIDA-RED الهجوم اكتمل
+
+الهدف: http://localhost:8080
+المدة: 2 دقيقة 34 ثانية
+الأدوات: nuclei, nikto, nmap, sslscan
+
+الاكتشافات:
+  حرجة:    0
+  عالية:   2
+  متوسطة: 5
+  منخفضة: 3
+  معلوماتية: 10
+
+المشاكل الرئيسية:
+  [عالية] تكوين TLS قديم - TLS 1.0 مفعل
+  [عالية] رؤوس أمان مفقودة - X-Frame-Options غير محدد
+  [متوسطة] كشف معلومات - إصدار الخادم في الرؤوس
+  [متوسطة] منفذ مفتوح - المنفذ 5432 (PostgreSQL) مكشوف
+  [متوسطة] قائمة المجلدات - قائمة /assets/ مفعلة
+
+التقرير الكامل: .aida-red/reports/assault-20260128.json
+```
+
+</div>
+
+---
+
+## الأشرار الثلاثة (شخصيات الوكيل)
+
+يستخدم AIDA-RED ثلاثة وكلاء "أشرار" متخصصين لمتجهات هجوم مختلفة:
+
+### The Joker (فاحص المنطق)
+يولد مدخلات "صالحة تقنياً لكن مدمرة منطقياً".
+- القيم الحدية، الحمولات الضخمة، حقن Unicode
+- ظروف السباق، تجاوز الأعداد الصحيحة
+- الأدوات: `ffuf`، `nuclei` (قوالب الفحص)
+
+### The Shadow (كاسر الأمان)
+يجد تجاوزات التفويض وتسريب البيانات.
+- IDOR، تصعيد الامتيازات، التلاعب بـ JWT
+- حقن SQL، تجاوز المصادقة
+- الأدوات: `nuclei`، `nikto`، `sqlmap`
+
+### The Chaos (محطم البنية التحتية)
+يكسر البيئة، وليس فقط الكود.
+- تعطل الحاويات، تقسيم الشبكة
+- استنفاد الموارد، اختبار الفوضى
+- الأدوات: `stress-ng`، `nmap`
+
+---
+
+## التكامل مع AIDA
+
+يتكامل AIDA-RED تلقائياً مع سير عمل AIDA:
+
+1. **التشغيل التلقائي**: عند اكتمال AIDA (نجاح بوابات الجودة)، يقترح AIDA-RED تشغيل فحص أمني
+
+2. **حقن الأدلة**: تُكتب الاكتشافات إلى `.aida/tdd-evidence/external-bugs/`، مما يتسبب في **فشل** بوابات جودة AIDA حتى يتم إصلاح المشاكل
+
+3. **الحلقة المستمرة**: إصلاح الثغرات → إعادة بناء AIDA → فحص AIDA-RED مرة أخرى → التكرار حتى النظافة
+
+<div dir="ltr">
+
+```
+بناء AIDA اكتمل
+        ↓
+فحص AIDA-RED
+        ↓
+ثغرات وجدت؟ ─── لا ───→ تم!
+        │
+       نعم
+        ↓
+الحقن في أدلة AIDA
+        ↓
+بوابات جودة AIDA فشلت
+        ↓
+المطور يصلح المشاكل
+        ↓
+إعادة بناء AIDA → حلقة
+```
+
+</div>
+
+---
+
+## اعتبارات الأمان
+
+صُمم AIDA-RED **لاختبار الأمان الدفاعي** لتطبيقاتك الخاصة:
+
+- افحص فقط التطبيقات التي تملكها أو لديك إذن لاختبارها
+- لا تستخدم أبداً ضد أنظمة الإنتاج بدون تفويض
+- قد تحتوي النتائج على إيجابيات خاطئة - تحقق من الاكتشافات يدوياً
+- بعض الأدوات (sqlmap) قد تعدل البيانات - استخدم بحذر
+
+---
 
 ## الترخيص
 
-MIT
-
-## شكر وتقدير
-
-### التقنيات الأساسية
-
-| المشروع | المؤلف | الدور |
-|---------|--------|-------|
-| [zoltraak](https://github.com/dai-motoki/zoltraak) | [@dai-motoki](https://github.com/dai-motoki) | توليد المتطلبات |
-| [cc-sdd](https://github.com/gotalab/cc-sdd) | [@gotalab](https://github.com/gotalab) | التطوير المبني على المواصفات |
-| [claude-code-harness](https://github.com/Chachamaru127/claude-code-harness) | [@Chachamaru127](https://github.com/Chachamaru127) | إطار TDD |
-| orchestrobot (aida-cli) | [@kent8192](https://github.com/kent8192) | تنسيق الوكلاء المتعددين |
-
-### البنية التحتية
-
-| المشروع | الترخيص |
-|---------|---------|
-| [Claude Code](https://github.com/anthropics/claude-code) | Anthropic |
-| [Redis](https://redis.io/) | BSD-3-Clause |
-| [tmux](https://github.com/tmux/tmux) | ISC |
-| [Podman](https://podman.io/) | Apache 2.0 |
-
-### شكر خاص
-
-- [Anthropic](https://www.anthropic.com/) - منشئو Claude
-- جميع المساهمين والمختبرين الذين ساعدوا في تحسين هذا المشروع
-
-## الروابط
-
-- [مستودع GitHub](https://github.com/clearclown/claude-code-aida)
-- [Issues](https://github.com/clearclown/claude-code-aida/issues)
+رخصة MIT - استخدم بمسؤولية. أنت مسؤول عن كيفية استخدامك لهذه الأدوات.
 
 </div>

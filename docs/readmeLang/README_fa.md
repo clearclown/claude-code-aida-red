@@ -1,234 +1,304 @@
 <div dir="rtl">
 
-# پلاگین AIDA برای Claude Code
+# AIDA-RED: چارچوب تست امنیتی دفاعی
 
-**AIDA** (Agent Integration & Development Architecture) - فریم‌ورک هماهنگی چند عامله برای Claude Code
+**AIDA-RED** (معماری نفوذ و تخریب خودکار) - نسخه تیم قرمز AIDA
+
+<p align="center">
+  <img src="../pics/aida-red-logo.svg" alt="AIDA-RED Logo" width="600">
+</p>
 
 [English](../../README.md) | [日本語](README_ja.md) | [简体中文](README_zh-CN.md) | [繁體中文](README_zh-TW.md) | [Русский](README_ru.md) | فارسی | [العربية](README_ar.md)
 
+> **«اگر خراب شد، یعنی آماده نبود.»**
+
+---
+
 ## مرور کلی
 
-AIDA هماهنگی چند عامله را برای پروژه‌های توسعه نرم‌افزار فراهم می‌کند:
+AIDA-RED یک **چارچوب تست امنیتی دفاعی** است که با [claude-code-aida](https://github.com/clearclown/claude-code-aida) یکپارچه می‌شود. در حالی که AIDA بر **ساختن** برنامه‌ها تمرکز دارد، AIDA-RED بر **شکستن** آن‌ها تمرکز می‌کند تا آسیب‌پذیری‌ها را قبل از مهاجمان پیدا کند.
 
-- **تولید پروژه جدید**: تولید پروژه‌های کامل از توضیحات زبان طبیعی
-- **بهبود پروژه موجود**: گسترش پروژه‌های موجود با ویژگی‌های جدید
-- **نگهداری پروژه**: به‌روزرسانی وابستگی‌ها، ممیزی امنیتی، بهبود کیفیت
-- **وارد کردن پروژه خارجی**: وارد کردن و تحلیل مخازن GitHub/GitLab
+**نوآوری کلیدی**: AIDA-RED از **کانتینرهای Podman/Docker** با ابزارهای امنیتی **Kali Linux** استفاده می‌کند که توسط Claude Code هماهنگ می‌شوند. کلود کد حمله نمی‌نویسد - ابزارهای امنیتی متن‌باز اثبات‌شده را فراخوانی کرده و خروجی آن‌ها را تحلیل می‌کند.
 
-<p align="center">
-  <img src="../pics/architecture.svg" alt="معماری AIDA" width="600">
-</p>
+### فلسفه
 
-## شروع سریع
+1. **اعتماد صفر**: فرض کنید هر ورودی یک بردار حمله است
+2. **بدون شبیه‌سازی**: کانتینر در حال اجرا را حمله کنید، نه توابع ایزوله
+3. **ابزارهای واقعی**: از اسکنرهای امنیتی اثبات‌شده (nuclei، nikto، nmap) استفاده کنید، نه اکسپلویت‌های سفارشی
+4. **گزارش‌های عملی**: هر یافته شامل مراحل بازتولید و توصیه‌های اصلاح است
 
-### نصب
-
-**نصب یک خطی (توصیه شده)**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/clearclown/claude-code-aida/main/scripts/install.sh | bash
-```
-
-**نصب دستی**
-
-```bash
-# کلون کردن مخزن
-git clone https://github.com/clearclown/claude-code-aida.git
-cd claude-code-aida
-
-# اجرای اسکریپت نصب
-./scripts/install.sh
-```
-
-**تأیید نصب**
-
-```bash
-./scripts/test-aida.sh --quick
-```
-
-### استفاده پایه
-
-```bash
-# راه‌اندازی فضای کار AIDA
-/aida:init
-
-# تولید پروژه جدید
-/aida:pipeline "ایجاد یک برنامه کلون توییتر"
-
-# بهبود پروژه موجود
-/aida:enhance /path/to/project "افزودن احراز هویت کاربر"
-
-# بررسی وضعیت
-/aida:status
-```
-
-## دستورات
-
-### تولید پروژه (پروژه‌های جدید)
-
-| دستور | توضیحات |
-|-------|---------|
-| `/aida:init` | راه‌اندازی ساختار دایرکتوری AIDA |
-| `/aida:start <توضیحات>` | شروع خط لوله چند عامله جدید |
-| `/aida:status` | نمایش وضعیت جلسه فعلی |
-| `/aida:work` | اجرای وظایف فاز فعلی |
-| `/aida:pipeline <توضیحات>` | اجرای خط لوله کاملاً خودکار |
-
-### پشتیبانی پروژه موجود
-
-| دستور | توضیحات |
-|-------|---------|
-| `/aida:analyze <مسیر>` | تحلیل ساختار پروژه، پشته فناوری، کیفیت |
-| `/aida:import <مسیر\|URL>` | وارد کردن پروژه خارجی به مدیریت AIDA |
-| `/aida:enhance <مسیر> [مشخصات]` | بهبود پروژه با سند یا زبان طبیعی |
-| `/aida:maintain <مسیر> [گزینه‌ها]` | وظایف نگهداری (وابستگی‌ها، امنیت، کیفیت) |
-
-### گزینه‌های نگهداری
-
-```bash
-# به‌روزرسانی وابستگی‌ها
-/aida:maintain /path/to/project --update-deps
-
-# ممیزی امنیتی
-/aida:maintain /path/to/project --security
-
-# بهبود کیفیت
-/aida:maintain /path/to/project --improve
-
-# رفع تست‌های ناموفق
-/aida:maintain /path/to/project --fix-tests
-
-# رسیدگی به Issue گیت‌هاب
-/aida:maintain /path/to/project --issue https://github.com/org/repo/issues/123
-```
+---
 
 ## معماری
 
-### نقش‌های عامل
+<div dir="ltr">
 
-| عامل | نقش |
-|------|-----|
-| **Conductor** | هماهنگی کل خط لوله، هدایت Leaders |
-| **Leader-Spec** | مدیریت فازهای مشخصات (نیازمندی‌ها، طراحی) |
-| **Leader-Impl** | مدیریت فاز پیاده‌سازی (توسعه مبتنی بر TDD) |
-| **Leader-Enhance** | مدیریت مشخصات بهبود برای پروژه‌های موجود |
-| **Player** | کارگران متخصص (Backend، Frontend، Docker) |
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Claude Code                               │
+│                    (هماهنگ‌کننده و تحلیلگر)                       │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
+│  │ /aida:red-  │  │ /aida:red-  │  │ /aida:red-  │              │
+│  │    init     │  │   assault   │  │   report    │              │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘              │
+└─────────┼────────────────┼────────────────┼─────────────────────┘
+          │                │                │
+          ▼                ▼                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Podman / Docker                               │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │              aida-red-scanner (Kali Linux)                 │ │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐          │ │
+│  │  │ nuclei  │ │  nikto  │ │  nmap   │ │  ffuf   │  ...     │ │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘          │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                             │                                    │
+│                    aida-red-net (شبکه Podman)                    │
+│                             │                                    │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │                 برنامه هدف                                  │ │
+│  │            (پروژه تولید شده توسط AIDA)                      │ │
+│  └────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-## گردش کار ۵ فازی
+</div>
 
-<p align="center">
-  <img src="../pics/workflow.svg" alt="گردش کار" width="700">
-</p>
+---
 
-| فاز | نام | توضیحات |
-|-----|-----|---------|
-| ۱ | استخراج و معماری | استخراج نیازمندی‌ها، طراحی معماری |
-| ۲ | ساختار و طرحواره | ساختار دایرکتوری، تعریف طرحواره داده |
-| ۳ | هم‌ترازی | بررسی سازگاری نیازمندی‌ها |
-| ۴ | تأیید | تأیید برنامه، شناسایی اصلاحات |
-| ۵ | پیاده‌سازی | توسعه مبتنی بر TDD با دروازه‌های کیفیت |
+## ابزارهای امنیتی
 
-## پشتیبانی زبان
+AIDA-RED با ابزارهای امنیتی استاندارد صنعت از پیش نصب شده ارائه می‌شود:
 
-AIDA به طور خودکار چندین زبان را شناسایی و پشتیبانی می‌کند:
+| ابزار | هدف | مورد استفاده |
+|-------|-----|--------------|
+| **[nuclei](https://github.com/projectdiscovery/nuclei)** | اسکنر آسیب‌پذیری مبتنی بر قالب | تشخیص CVE، پیکربندی نادرست |
+| **[nikto](https://github.com/sullo/nikto)** | اسکنر وب سرور | پیکربندی نادرست سرور، نرم‌افزار قدیمی |
+| **[nmap](https://nmap.org/)** | اسکنر شبکه | کشف پورت، شناسایی سرویس |
+| **[ffuf](https://github.com/ffuf/ffuf)** | فازر وب | جستجوی دایرکتوری، فازینگ پارامتر |
+| **[sslscan](https://github.com/rbsec/sslscan)** | تحلیلگر SSL/TLS | مشکلات گواهی، رمزهای ضعیف |
+| **[sqlmap](https://sqlmap.org/)** | شناساگر تزریق SQL | آسیب‌پذیری‌های پایگاه داده (نسخه کامل) |
+| **[stress-ng](https://github.com/ColinIanKing/stress-ng)** | تست فشار | تست اتمام منابع |
 
-| زبان | شناسایی | فریم‌ورک تست |
-|------|---------|--------------|
-| Go | `go.mod` | `go test` |
-| TypeScript/JavaScript | `package.json` | Jest, Vitest |
-| Python | `pyproject.toml`, `requirements.txt` | pytest |
-| Rust | `Cargo.toml` | `cargo test` |
-| Java | `pom.xml`, `build.gradle` | JUnit, Maven/Gradle |
-| Ruby | `Gemfile` | RSpec |
-| C# | `*.csproj` | dotnet test |
-| PHP | `composer.json` | PHPUnit |
+---
 
-## دروازه‌های کیفیت
+## نصب
 
-### دروازه‌های پروژه جدید (۱۰ دروازه)
+### پیش‌نیازها
 
-| دروازه | نام | اعتبارسنجی |
-|--------|-----|------------|
-| ۱ | ساخت Backend | `go build ./...` |
-| ۲ | تست‌های Backend | `go test ./...` |
-| ۳ | ساخت Frontend | `npm run build` |
-| ۴ | تست‌های Frontend | `npm test -- --run` |
-| ۵ | ساخت Docker | `docker compose build` |
-| ۶ | اجرای Docker | `docker compose up -d` |
-| ۷ | بررسی سلامت | `curl localhost:8080/health` |
-| ۸ | پوشش API | ۳+ فایل handler، ۱۰+ تابع |
-| ۹ | پوشش Frontend | ۳+ صفحه، مسیریابی، کلاینت API |
-| ۱۰ | یکپارچه‌سازی | کلاینت API، CORS، پیوندهای Docker |
+- **Podman** (توصیه شده) یا **Docker**
+- **Claude Code** با پلاگین AIDA نصب شده
 
-## پروتکل TDD
-
-<p align="center">
-  <img src="../pics/tdd-cycle.svg" alt="چرخه TDD" width="300">
-</p>
-
-تمام پیاده‌سازی‌ها از TDD دقیق پیروی می‌کنند:
-
-۱. **RED**: ابتدا تست ناموفق بنویسید
-۲. **GREEN**: حداقل کد برای عبور از تست
-۳. **REFACTOR**: پاکسازی در حالی که تست‌ها عبور می‌کنند
-
-بدون تست کدی نیست. بدون اجرا تستی نیست.
-
-## اسکریپت‌ها
-
-| اسکریپت | توضیحات |
-|---------|---------|
-| `scripts/install.sh` | نصب یک کلیکی |
-| `scripts/test-aida.sh` | خودآزمایی AIDA |
-| `scripts/quality-gates.sh` | دروازه‌های کیفیت پروژه جدید |
-| `scripts/enhance-quality-gates.sh` | دروازه‌های کیفیت بهبود |
-| `scripts/analyze-project.sh` | تحلیل پروژه |
-| `scripts/checkpoint.sh` | ذخیره/بازیابی وضعیت جلسه |
-
-## محیط اجرای کانتینر
-
-AIDA هر دو Docker و Podman را پشتیبانی می‌کند:
+<div dir="ltr">
 
 ```bash
-# شناسایی خودکار podman یا docker
+# نصب Podman (Ubuntu/Debian)
+sudo apt install podman
 
-# اجبار Podman
-export DOCKER_HOST="unix:///run/user/$(id -u)/podman/podman.sock"
-./scripts/quality-gates.sh myproject
+# یا Docker
+sudo apt install docker.io
 ```
+
+</div>
+
+### نصب AIDA-RED
+
+AIDA-RED در پلاگین AIDA گنجانده شده است. نیازی به نصب جداگانه نیست.
+
+<div dir="ltr">
+
+```bash
+# تأیید نصب
+/aida:red-status
+```
+
+</div>
+
+### ساخت تصویر اسکنر
+
+<div dir="ltr">
+
+```bash
+# مقداردهی اولیه و ساخت کانتینر اسکنر Kali
+/aida:red-init
+
+# یا استفاده از نسخه سبک (ساخت سریع‌تر، ابزارهای کمتر)
+/aida:red-init --lite
+```
+
+</div>
+
+**اندازه تصاویر:**
+- کامل: ~2GB (شامل sqlmap، ZAP CLI)
+- سبک: ~624MB (nuclei، nikto، nmap، ffuf، sslscan)
+
+---
+
+## استفاده
+
+### شروع سریع
+
+<div dir="ltr">
+
+```bash
+# 1. ساخت برنامه با AIDA
+/aida "ایجاد یک REST API با احراز هویت کاربر"
+
+# 2. مقداردهی اولیه اسکنر AIDA-RED
+/aida:red-init --lite
+
+# 3. اجرای اسکن امنیتی روی برنامه در حال اجرا
+/aida:red-assault --target http://localhost:8080
+
+# 4. مشاهده گزارش
+/aida:red-report
+```
+
+</div>
+
+### دستورات
+
+| دستور | توضیحات |
+|-------|---------|
+| `/aida:red-init` | ساخت کانتینر اسکنر Kali، ایجاد شبکه |
+| `/aida:red-assault` | اجرای اسکن‌های امنیتی روی هدف |
+| `/aida:red-status` | نمایش وضعیت اسکنر و یافته‌های اخیر |
+| `/aida:red-report` | تولید گزارش دقیق آسیب‌پذیری |
+| `/aida:red-cleanup` | حذف کانتینرها و شبکه |
+
+### گزینه‌های حمله
+
+<div dir="ltr">
+
+```bash
+# اسکن پایه (شدت استاندارد)
+/aida:red-assault --target http://localhost:8080
+
+# حداکثر شدت (همه ابزارها)
+/aida:red-assault --target http://localhost:8080 --intensity maximum
+
+# فقط ابزارهای خاص
+/aida:red-assault --target http://localhost:8080 --tools nuclei,nikto
+
+# اسکن پروژه AIDA (تشخیص خودکار سرویس‌های در حال اجرا)
+/aida:red-assault --target ../my-aida-project
+```
+
+</div>
+
+### سطوح شدت
+
+| سطح | ابزارها | مدت زمان |
+|-----|---------|----------|
+| `minimum` | nuclei، health-check | ~1 دقیقه |
+| `standard` | nuclei، nikto، nmap، sslscan | ~5 دقیقه |
+| `maximum` | همه ابزارها شامل ffuf، sqlmap | ~15 دقیقه |
+
+---
+
+## نمونه خروجی
+
+<div dir="ltr">
+
+```
+AIDA-RED حمله کامل شد
+
+هدف: http://localhost:8080
+مدت: 2 دقیقه 34 ثانیه
+ابزارها: nuclei, nikto, nmap, sslscan
+
+یافته‌ها:
+  بحرانی:  0
+  بالا:    2
+  متوسط:  5
+  پایین:  3
+  اطلاعاتی: 10
+
+مشکلات اصلی:
+  [بالا] پیکربندی TLS قدیمی - TLS 1.0 فعال است
+  [بالا] هدرهای امنیتی گم شده - X-Frame-Options تنظیم نشده
+  [متوسط] افشای اطلاعات - نسخه سرور در هدرها
+  [متوسط] پورت باز - پورت 5432 (PostgreSQL) در معرض
+  [متوسط] لیست دایرکتوری - لیست /assets/ فعال
+
+گزارش کامل: .aida-red/reports/assault-20260128.json
+```
+
+</div>
+
+---
+
+## سه شرور (شخصیت‌های عامل)
+
+AIDA-RED از سه عامل تخصصی «شرور» برای بردارهای حمله مختلف استفاده می‌کند:
+
+### The Joker (فازر منطقی)
+ورودی‌هایی تولید می‌کند که «از نظر فنی معتبر اما از نظر منطقی مخرب» هستند.
+- مقادیر مرزی، بارهای عظیم، تزریق Unicode
+- شرایط رقابتی، سرریز عدد صحیح
+- ابزارها: `ffuf`، `nuclei` (قالب‌های فازینگ)
+
+### The Shadow (شکننده امنیت)
+دور زدن مجوز و نشت داده را پیدا می‌کند.
+- IDOR، افزایش امتیاز، دستکاری JWT
+- تزریق SQL، دور زدن احراز هویت
+- ابزارها: `nuclei`، `nikto`، `sqlmap`
+
+### The Chaos (خرابکار زیرساخت)
+محیط را خراب می‌کند، نه فقط کد را.
+- خرابی کانتینر، پارتیشن شبکه
+- اتمام منابع، تست آشوب
+- ابزارها: `stress-ng`، `nmap`
+
+---
+
+## یکپارچگی با AIDA
+
+AIDA-RED به طور خودکار با گردش کار AIDA یکپارچه می‌شود:
+
+1. **راه‌اندازی خودکار**: وقتی AIDA کامل می‌شود (دروازه‌های کیفیت عبور می‌کنند)، AIDA-RED پیشنهاد اجرای اسکن امنیتی می‌دهد
+
+2. **تزریق شواهد**: یافته‌ها به `.aida/tdd-evidence/external-bugs/` نوشته می‌شوند، باعث **شکست** دروازه‌های کیفیت AIDA تا رفع مشکلات
+
+3. **حلقه مداوم**: رفع آسیب‌پذیری‌ها → بازسازی AIDA → اسکن مجدد AIDA-RED → تکرار تا پاکیزه شدن
+
+<div dir="ltr">
+
+```
+ساخت AIDA کامل شد
+        ↓
+اسکن AIDA-RED
+        ↓
+آسیب‌پذیری پیدا شد؟ ─── نه ───→ تمام!
+        │
+       بله
+        ↓
+تزریق به شواهد AIDA
+        ↓
+دروازه‌های کیفیت AIDA شکست خورد
+        ↓
+توسعه‌دهنده مشکلات را رفع می‌کند
+        ↓
+بازسازی AIDA → حلقه
+```
+
+</div>
+
+---
+
+## ملاحظات امنیتی
+
+AIDA-RED برای **تست امنیتی دفاعی** برنامه‌های خودتان طراحی شده است:
+
+- فقط برنامه‌هایی را اسکن کنید که مالک آن هستید یا اجازه تست دارید
+- هرگز بدون مجوز روی سیستم‌های تولیدی استفاده نکنید
+- نتایج ممکن است شامل مثبت کاذب باشد - یافته‌ها را به صورت دستی تأیید کنید
+- برخی ابزارها (sqlmap) ممکن است داده‌ها را تغییر دهند - با احتیاط استفاده کنید
+
+---
 
 ## مجوز
 
-MIT
-
-## اعتبارات و قدردانی
-
-### فناوری‌های هسته‌ای
-
-| پروژه | نویسنده | نقش |
-|-------|---------|-----|
-| [zoltraak](https://github.com/dai-motoki/zoltraak) | [@dai-motoki](https://github.com/dai-motoki) | تولید نیازمندی‌ها |
-| [cc-sdd](https://github.com/gotalab/cc-sdd) | [@gotalab](https://github.com/gotalab) | توسعه مبتنی بر مشخصات |
-| [claude-code-harness](https://github.com/Chachamaru127/claude-code-harness) | [@Chachamaru127](https://github.com/Chachamaru127) | فریم‌ورک TDD |
-| orchestrobot (aida-cli) | [@kent8192](https://github.com/kent8192) | هماهنگی چند عامله |
-
-### زیرساخت
-
-| پروژه | مجوز |
-|-------|------|
-| [Claude Code](https://github.com/anthropics/claude-code) | Anthropic |
-| [Redis](https://redis.io/) | BSD-3-Clause |
-| [tmux](https://github.com/tmux/tmux) | ISC |
-| [Podman](https://podman.io/) | Apache 2.0 |
-
-### تشکر ویژه
-
-- [Anthropic](https://www.anthropic.com/) - سازندگان Claude
-- تمام مشارکت‌کنندگان و آزمایش‌کنندگانی که به بهبود این پروژه کمک کردند
-
-## پیوندها
-
-- [مخزن GitHub](https://github.com/clearclown/claude-code-aida)
-- [Issues](https://github.com/clearclown/claude-code-aida/issues)
+مجوز MIT - مسئولانه استفاده کنید. شما مسئول نحوه استفاده از این ابزارها هستید.
 
 </div>
