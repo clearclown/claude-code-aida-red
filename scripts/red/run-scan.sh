@@ -25,6 +25,7 @@ if [[ -z "$RUNTIME" ]]; then
     echo '{"status":"error","message":"No container runtime found"}'
     exit 1
 fi
+RUNTIME_NAME="$(basename "$RUNTIME")"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -46,6 +47,18 @@ if [[ -z "$TARGET" || -z "$TOOL" ]]; then
     exit 1
 fi
 
+# Validate target: only allow URLs and hostnames (no shell metacharacters)
+if [[ "$TARGET" =~ [\;\|\&\`\$\(] ]]; then
+    echo '{"status":"error","message":"Invalid characters in --target"}'
+    exit 1
+fi
+
+# Validate tool name: alphanumeric and hyphens only
+if [[ ! "$TOOL" =~ ^[a-zA-Z0-9-]+$ ]]; then
+    echo '{"status":"error","message":"Invalid tool name"}'
+    exit 1
+fi
+
 # Set output dir
 if [[ -z "$OUTPUT_DIR" ]]; then
     OUTPUT_DIR="$(pwd)/.aida-red/results/$(date +%Y%m%d_%H%M%S)"
@@ -57,47 +70,51 @@ SCAN_ID="${TOOL}-$(date +%s)"
 
 echo "[$TIMESTAMP] Running $TOOL against $TARGET" >&2
 
+# Shell-escape a string for safe embedding in single quotes
+shell_escape() {
+    printf '%s' "$1" | sed "s/'/'\\\\''/g"
+}
+
 # Build the tool command
+# Target is shell-escaped to prevent injection via crafted URLs
 build_command() {
     local tool="$1"
-    local target="$2"
+    local target
+    target=$(shell_escape "$2")
     local args="$3"
     local output_file="/work/results/scan-output"
 
     case "$tool" in
         nuclei)
-            echo "nuclei -u '$target' -jsonl -o '${output_file}.jsonl' -silent $args; cat '${output_file}.jsonl' 2>/dev/null || echo '[]'"
+            echo "nuclei -u '${target}' -jsonl -o '${output_file}.jsonl' -silent ${args}; cat '${output_file}.jsonl' 2>/dev/null || echo '[]'"
             ;;
         nikto)
-            echo "nikto -h '$target' -Format json -output '${output_file}.json' $args 2>/dev/null; cat '${output_file}.json' 2>/dev/null || echo '{}'"
+            echo "nikto -h '${target}' -Format json -output '${output_file}.json' ${args} 2>/dev/null; cat '${output_file}.json' 2>/dev/null || echo '{}'"
             ;;
         nmap)
-            echo "nmap -oX '${output_file}.xml' $args '$target' 2>/dev/null; cat '${output_file}.xml'"
+            echo "nmap -oX '${output_file}.xml' ${args} '${target}' 2>/dev/null; cat '${output_file}.xml'"
             ;;
         ffuf)
-            # ffuf requires a wordlist; use built-in kali wordlists
             local wordlist="${args:-/usr/share/wordlists/dirb/common.txt}"
-            echo "ffuf -u '${target}/FUZZ' -w '$wordlist' -o '${output_file}.json' -of json -s 2>/dev/null; cat '${output_file}.json' 2>/dev/null || echo '{}'"
+            echo "ffuf -u '${target}/FUZZ' -w '${wordlist}' -o '${output_file}.json' -of json -s 2>/dev/null; cat '${output_file}.json' 2>/dev/null || echo '{}'"
             ;;
         sslscan)
-            echo "sslscan --json='${output_file}.json' '$target' 2>/dev/null; cat '${output_file}.json' 2>/dev/null || echo '{}'"
+            echo "sslscan --json='${output_file}.json' '${target}' 2>/dev/null; cat '${output_file}.json' 2>/dev/null || echo '{}'"
             ;;
         sqlmap)
-            echo "sqlmap -u '$target' --batch --output-dir=/work/results/sqlmap $args 2>/dev/null; echo '{\"completed\":true}'"
+            echo "sqlmap -u '${target}' --batch --output-dir=/work/results/sqlmap ${args} 2>/dev/null; echo '{\"completed\":true}'"
             ;;
         stress-test)
-            # Run stress-ng against the kali container itself (test resilience of target via load)
             echo "stress-ng --cpu 2 --vm 1 --vm-bytes 256M --timeout 30s 2>/dev/null; echo '{\"completed\":true}'"
             ;;
         curl-fuzz)
-            # Simple HTTP fuzzing with curl
-            echo "for code in 200 201 301 302 400 401 403 404 500; do echo \"HTTP \$code check\"; done; curl -s -o /dev/null -w '{\"http_code\":%{http_code},\"time_total\":%{time_total},\"size_download\":%{size_download}}' '$target'"
+            echo "for code in 200 201 301 302 400 401 403 404 500; do echo \"HTTP \$code check\"; done; curl -s -o /dev/null -w '{\"http_code\":%{http_code},\"time_total\":%{time_total},\"size_download\":%{size_download}}' '${target}'"
             ;;
         health-check)
-            echo "curl -s -o /dev/null -w '{\"http_code\":%{http_code},\"time_total\":%{time_total}}' '$target' || echo '{\"http_code\":0,\"error\":\"unreachable\"}'"
+            echo "curl -s -o /dev/null -w '{\"http_code\":%{http_code},\"time_total\":%{time_total}}' '${target}' || echo '{\"http_code\":0,\"error\":\"unreachable\"}'"
             ;;
         *)
-            echo "echo '{\"error\":\"Unknown tool: $tool\"}'"
+            echo "echo '{\"error\":\"Unknown tool: ${tool}\"}'"
             ;;
     esac
 }
@@ -105,10 +122,15 @@ build_command() {
 # Execute scan in container
 COMMAND=$(build_command "$TOOL" "$TARGET" "$EXTRA_ARGS")
 
-# Build podman/docker run command
-RUN_ARGS=(run --rm --network "$NETWORK_NAME" -v "$OUTPUT_DIR:/work/results:Z" --timeout "$TIMEOUT")
+# Build container run command (compatible with both Docker and Podman)
+RUN_ARGS=(run --rm --network "$NETWORK_NAME" -v "$OUTPUT_DIR:/work/results:Z")
 
-# Add privileged mode for tools that need raw sockets (nmap)
+# --timeout is Podman-only; Docker uses --stop-timeout (and only on long-running containers)
+if [[ "$RUNTIME_NAME" == "podman" ]]; then
+    RUN_ARGS+=(--timeout "$TIMEOUT")
+fi
+
+# Add capabilities for tools that need raw sockets (nmap)
 if [[ "$PRIVILEGED" == "true" ]] || [[ "$TOOL" == "nmap" ]]; then
     RUN_ARGS+=(--cap-add=NET_RAW --cap-add=NET_ADMIN)
 fi
@@ -125,7 +147,7 @@ cat <<EOF
 {
   "scan_id": "${SCAN_ID}",
   "tool": "${TOOL}",
-  "target": "${TARGET}",
+  "target": $(printf '%s' "$TARGET" | jq -Rs .),
   "timestamp": "${TIMESTAMP}",
   "output_dir": "${OUTPUT_DIR}",
   "status": "completed",

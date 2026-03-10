@@ -102,8 +102,8 @@ check_frontmatter() {
     local filename=$(basename "$file")
 
     if head -1 "$file" | grep -q "^---$"; then
-        # Has frontmatter, validate it
-        local fm=$(sed -n '/^---$/,/^---$/p' "$file" | head -n -1 | tail -n +2)
+        # Has frontmatter, validate it (portable: use awk to extract between --- markers)
+        local fm=$(awk '/^---$/{c++;if(c==2)exit;next}c==1{print}' "$file")
 
         if [[ -z "$fm" ]]; then
             add_warning "Empty frontmatter: $filename"

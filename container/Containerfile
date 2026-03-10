@@ -38,6 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sslyze \
     # === Utilities ===
     jq \
+    unzip \
     python3 \
     python3-pip \
     python3-venv \
@@ -69,8 +70,9 @@ RUN python3 -m venv /opt/zap-venv \
 # Create working directories
 RUN mkdir -p /work/results /work/payloads /work/templates
 
-# Copy payload dictionaries if present
-COPY --chmod=644 payloads/ /work/payloads/ 2>/dev/null || true
+# Copy payload dictionaries if present in build context
+# Note: build will fail if payloads/ doesn't exist; create it before building
+COPY payloads/ /work/payloads/
 
 # Default entrypoint - run any tool
 WORKDIR /work

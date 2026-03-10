@@ -84,7 +84,8 @@ get_current_agents() {
 
     # Check for task agent processes
     if command -v pgrep &>/dev/null; then
-        count=$(pgrep -f "claude.*agent" 2>/dev/null | wc -l || echo "0")
+        count=$(pgrep -f "claude.*agent" 2>/dev/null | wc -l | tr -d ' ')
+        count="${count:-0}"
     fi
 
     # Also check agents.json for registered agents

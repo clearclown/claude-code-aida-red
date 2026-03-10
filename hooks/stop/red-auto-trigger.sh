@@ -14,6 +14,12 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+
+# Source common utilities
+source "$PROJECT_ROOT/scripts/lib/common.sh"
+
 SESSION_FILE=".aida/state/session.json"
 RED_CONFIG=".aida-red/config/scanner.json"
 
